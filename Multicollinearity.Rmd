@@ -1,0 +1,88 @@
+---
+title: "Multicollinearity"
+author: "Nishanth Girish"
+date: '2022-11-29'
+output: word_document
+---
+
+```{r}
+data = read.csv(file.choose())
+View(data)
+attach(data)
+```
+```{r}
+mlr=lm(wage~.,data)
+mlr
+```
+```{r}
+#anova table
+anova(mlr)
+```
+```{r}
+#model summary
+summary(mlr)
+```
+
+```{r}
+#variance inflation factor
+#install.packages("car")
+library(car)
+v=vif(mlr)
+v
+barplot(v,ylim=c(1,10))    #if vif>10 => severe multicollinearity.
+abline(h=5)
+```
+```{r}
+cor(data)
+```
+```{r}
+cor1=round(cor(data),2)
+cor1
+```
+```{r}
+#correlation plots:
+#install.packages("corrplot")
+library(corrplot )
+corrplot(cor1,method = "number")
+corrplot(cor1,method = "number", type = "upper")
+corrplot.mixed(cor1,upper  = "number",lower = "ellipse")      #lower="square"
+                                                              #lower="circle"
+```
+```{r}
+#Farrar-Glauber test:
+#install.packages("mctest")
+library(mctest)
+
+omcdiag(mlr)   #Overall Multicollinearity Diagnostics
+
+imcdiag(mlr)   #Individual Multicollinearity Diagnostics
+```
+
+```{r}
+summary(mlr)
+
+#R-squared = 0.28
+```
+```{r}
+newdata = data[,c(-1,-4,-7)]
+attach(newdata)
+newdata
+```
+Testing for autocorrelation:
+
+H0:No autocorrelation.
+H1: Autocorrelation exists.
+```{r}
+#install.packages("lmtest")
+library(lmtest)
+#Durbin-Watson test:
+dwtest(mlr)
+```
+p-value > 0.05.
+Reject null hypothesis.
+Autocorrelation exists.
+```{r}
+#Breusch-Pagan test for heteroscedasticity
+bptest(mlr)
+```
+

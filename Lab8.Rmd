@@ -1,0 +1,178 @@
+---
+title: "2248111_Lab8"
+author: "Nishanth Girish"
+date: '2023-01-28'
+output: word_document
+---
+
+```{r}
+#Importing necessary libraries:
+library(olsrr)
+library(pROC)
+library(pscl)
+library(MASS)
+library(car)
+library(AID)
+```
+
+DATASET DESCRIPTION:
+
+The synth.tr data frame has 250 rows and 3 columns. The dependent variable is the yc column which is categorical in nature. The independent variables are the xs and ys columns which contains x and y coordinates respectively.
+
+```{r}
+#Selecting an in-built data set: synth.tr from the MASS package.
+data1 = synth.tr
+head(data1)
+attach(data1)    #attach to avoid using $ symbol.
+```
+
+
+```{r}
+#Fitting a logistic model:
+log_model1 = glm(yc~ ., data = data1, family="binomial")
+
+summary(log_model1)
+```
+
+INTERPRETATION:
+
+The null deviance is 346.57 and residual deviance is 161.42. The AIC value is 167.42.
+The difference between null deviance and residual deviance is high which means that the model is pretty good.
+Also, all the variables are statistically significant.
+
+```{r}
+#pseudo R-squared value:
+pscl::pR2(log_model1)["McFadden"]
+#pR2 value >0.4 is a good model
+```
+
+INTERPRETATION:
+
+The pseudo R-squared value for the model is 0.5342413.
+The model is very good since pseudo R-squared value is greater than 0.4.
+
+```{r}
+#Probability values:
+
+prob = predict(log_model1, type = "response")
+#cbind(yc , round(prob,2))
+cutoff= ifelse(prob<0.5,"0","1")   #if prob < 0.5 classify as 0, else classify as 1
+```
+
+```{r}
+#Confusion matrix:
+
+table(yc,cutoff)      
+```
+
+INTERPRETATION:
+
+The confusion matrix shows that 34(19+15) values are misclassified [false positives and false negatives]. 216 values are correctly classified [true positives and true negatives].
+
+```{r}
+#accuracy = (TP + TN )/(TP+TN+FN+FP)
+accuracy = (106+110)/(106+110+15+19)
+accuracy
+```
+
+INTERPRETATION:
+
+The accuracy of the model  is 86.4% which indicates that the model is very accurate and can be used for predicting or classifying.
+
+```{r}
+#ROC curve:
+curve1 <- roc(yc, prob)
+plot(curve1)
+```
+
+INTERPRETATION:
+
+The curve is towards the top-left and far from the 45-degree reference line which indicates the model is very accurate. The closer the curve comes to the 45-degree diagonal of the ROC space, the less accurate the test.
+
+```{r}
+#Reading the in-built biospsy data set. The dependent variable is the class column. We are predicting whether the tumor is benign or malignant based upon the values of the parameters obtained from the biopsy.
+
+data2 <- biopsy
+levels(data2$class) <- c(0,1) #Converting to 0's and 1's. 0:benign, 1:malignant
+
+head(data2)
+attach(data2)
+```
+
+```{r}
+library(tidyr)
+data2 <- data2 %>% drop_na() #dropping the rows containing missing values.
+
+
+df2 <- data2[,-1]   #dropping the ID column.
+head(df2)
+attach(df2)
+```
+
+
+```{r}
+#Fitting a logistic regression model onto the data.
+log_model2 = glm(class ~ ., data = df2, family="binomial")
+
+summary(log_model2)
+```
+
+INTERPRETATION:
+
+The null deviance is 884.35 and residual deviance is 102.89. The AIC value is 122.89.
+The difference between null deviance and residual deviance is high which means that the model is pretty good.
+Also, some of the variables (V1, V4, V6, V7) are statistically significant.
+
+```{r}
+#pseudo R-squared value:
+pscl::pR2(log_model2)["McFadden"]
+#pR2 value >0.4 is a good model
+```
+INTERPRETATION:
+
+The pseudo R-squared value for the model is 0.883656.
+The model is very good since pseudo R-squared value is greater than 0.4.
+
+```{r}
+#probability values:
+prob = predict(log_model2, type = "response")
+#cbind(class , round(prob,2))
+cutoff= ifelse(prob<0.5,"0","1")   #if prob < 0.5 classify as 0, else classify as 1
+```
+
+
+```{r}
+#Confusion matrix
+table(class,cutoff)      
+```
+
+INTERPRETATION:
+
+The confusion matrix shows that 21(10+11) values are misclassified [false positives and false negatives]. 662 values are correctly classified [true positives and true negatives].
+
+```{r}
+#Accuracy of the model:
+
+#Accuracy = (TP + TN )/(TP+TN+FN+FP)
+accuracy = (434+228)/(434+228+10+11)
+accuracy
+```
+
+INTERPRETATION:
+
+The accuracy of the model  is 96.92% which indicates that the model is very accurate and can be used for predicting or classifying.
+
+
+```{r}
+#ROC curve:
+
+curve2 <- roc(class, prob)
+plot(curve2)
+```
+
+INTERPRETATION:
+
+The curve is towards the top-left and far from the 45-degree reference line which indicates the model is very accurate. The closer the curve comes to the 45-degree diagonal of the ROC space, the less accurate the test.
+
+
+

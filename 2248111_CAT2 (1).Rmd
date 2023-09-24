@@ -1,0 +1,151 @@
+---
+title: "2248111_CAT2"
+author: "Nishanth Girish"
+date: "2023-01-24"
+output: word_document
+---
+
+```{r}
+#Importing necessary libraries:
+library(olsrr)
+library(ggplot2)
+library(pROC)
+library(pscl)
+library(MASS)
+library(car)
+library(AID)
+```
+
+```{r}
+#Selecting an in-built data set: surgical from the olsrr package
+data1 = surgical
+data1
+attach(data1)    #attach to avoid using $ symbol.
+```
+
+
+```{r}
+#1. Fitting a multiple linear regression model:
+mlr = lm(y~., data = data1)
+summary(mlr)
+```
+INTERPRETATION:
+
+The R-squared value of the model is 0.7818 which indicates that it is a good fit. However, we observe that there are many insignificant variables such as gender, age, alc_mod. Hence, this might not be the best model that fits the data. 
+Thus, we go for stepwise regression and see which variables must be selected/eliminated for our model.
+
+```{r}
+#2. Stepwise regression:
+
+#Stepwise backward elimination:
+ols_step_backward_aic(mlr,details = TRUE)
+
+```
+
+INTERPRETATION:
+
+Initially, all the variables are present in the model. No variables removed.
+Step 0: AIC = 736.3899 
+At Step 1 : AIC = 734.4068, alc_mod variable is removed.
+At Step 2 : AIC = 732.4942, gender variable is removed.
+At Step 3 : AIC = 730.6204. age variable is removed.
+After this no more variables are removed and the model obtained is:
+ y ~ bcs + pindex + enzyme_test + liver_test + alc_heavy 
+
+R-squared value for this model is 0.781.which indicates that it is a good fit.
+
+
+```{r}
+#stepwise forward selection
+ols_step_forward_aic(mlr,details = TRUE)
+```
+
+INTERPRETATION:
+
+Initially, no variables are present in the model. Only intercept term present.
+Step 0: AIC = 802.606 
+At Step 1 : AIC = 771.8753, liver_test variable is selected.
+At Step 2 : AIC = 761.4394, alc_heavy variable is selected.
+At Step 3 : AIC = 750.5089, enzyme_test variable is selected.
+At Step 4 : AIC = 735.7146, pindex variable is selected.
+At Step 5 : AIC = 730.6204, bcs variable is selected.
+
+After this no more variables are selected and the model obtained is:
+ y ~ bcs + pindex + enzyme_test + liver_test + alc_heavy 
+R-squared value for this model is 0.781 which indicates that it is a good fit
+This is the same as the model obtained after backward elimination.
+
+We note that the R-squared value of stepwise regression model and multiple linear regression model are the same. However, in stepwise regression only the significant variables are taken into account.
+
+```{r}
+#plot:
+plot(ols_step_forward_aic(mlr))
+
+plot(ols_step_backward_aic(mlr))
+```
+
+INTERPRETATION:
+
+The graphs show the variables selcted and eliminated respectively at each step as AIC value decrease.
+
+```{r}
+#3. Best model:
+
+#Taking only variables selected after stepwise forward selction:
+mlr_best = lm( y~ liver_test + alc_heavy + enzyme_test + pindex + bcs, data= data1) 
+summary(mlr_best)
+```
+INTERPRETATION:
+
+The intercept is -1178.330. The regression coefficients are 58.064,317.848, 9.748, 8.924, 59.864.
+R-squared value is 0.7809 which indicates that it is a good model. Almost all the variables are statistically significant. 
+This is the best linear model that can be obtained.
+
+```{r}
+#4. Logistic regression model:
+
+#We are taking the alc_heavy as the dependent variable here as we wish to predict if a patient is a heavy drinker or not.
+
+log_model = glm(alc_heavy ~ bcs+pindex+enzyme_test+liver_test+age+y, data= data1, family = "binomial")
+log_model
+```
+
+INTERPRETATION:
+
+The null deviance is 51.75 and residual deviance is 28.47. The AIC value is 42.47.
+The difference between null deviance and residual deviance is high which means that the model is pretty good.
+
+
+```{r}
+#actual v/s predicted values:
+prob <- predict(log_model, type = "response")
+cbind(alc_heavy, round(prob,2))
+```
+
+
+```{r}
+#confusion matrix
+cutoff = ifelse(prob<0.5,"0","1")
+
+table(alc_heavy,cutoff)
+```
+
+
+```{r}
+#accuracy = (TP + TN )/(TP+TN+FN+FP)
+accuracy = (42+5)/(42+5+5+2)
+accuracy
+```
+INTERPRETATION:
+The model is very accurate i.e it has an accuracy of 87.03%
+
+```{r}
+#pseudo R-squared value:
+pR2(log_model)["McFadden"]
+```
+INTERPRETATION:
+The model is very good since pseudo R-squared value is greater than 0.4
+
+#4: Decisons/Suggestions:
+We can use stepwise regression to determine which variables need to be selected in the model and then fit a multiple or simole linear regression model to obtain the best model.
+We can use logistic rgression when there are categorical variables and we need to predict or classify.

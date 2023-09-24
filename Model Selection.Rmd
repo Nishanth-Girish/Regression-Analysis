@@ -1,0 +1,69 @@
+---
+title: "RegressionAnalysis"
+author: "Nishanth Girish"
+date: '2022-12-10'
+output: word_document
+---
+
+
+
+```{r}
+head(swiss)
+attach(swiss)
+```
+```{r}
+#GLM
+mlr=lm(Fertility ~ ., data = swiss)
+summary(mlr)
+```
+```{r}
+#Forward selection:
+
+#install.packages("olsrr")
+library(olsrr)
+lm1=lm(Fertility~1, data = swiss)    #only intercept
+
+ols_step_forward_p(mlr, pent = 0.05 , details = FALSE)
+ols_step_forward_aic(mlr)
+
+
+ols_stepwise(mlr)
+```
+```{r}
+#Box-Cox transformation:
+
+rand=rexp(100,2)
+hist(rand)
+#install.packages("MASS")
+library(MASS)
+
+md = lm(rand~1)
+plot(md, which = 2)
+shapiro.test(md$residuals)
+
+
+bct=boxcox(md, lambda = seq(-4,4))
+           
+
+lmbda=bct$x[which.max(bct$y)]       #corresponding lambda value for max. log                                            likelihood fn.
+lmbda
+
+ylmd=(rand^lmbda - 1)/lmbda         #lambda not equal to 0
+                                    #if lambda = 0, ylmd = log(y)
+
+new_md = lm(ylmd ~ 1)
+plot(new_md,which = 2)
+shapiro.test(new_md$residuals)
+```
+
+```{r}
+#install.packages("AID")
+library(AID)
+library(car)
+
+powerTransform(md, family = "bcPower")
+
+boxcoxnc(rand, method = "sw", lambda = seq(-3,3,0.01), lambda2= NULL , plot = T, alpha = 0.05) 
+#method="ad"
+```
+

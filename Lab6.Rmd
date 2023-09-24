@@ -1,0 +1,163 @@
+---
+title: "MST271_2248111"
+author: "Nishanth Girish"
+date: '2023-01-06'
+output: word_document
+---
+
+```{r}
+#Importing necessary libraries:
+library(GGally)
+library(ggplot2)
+library(psych)
+library(mctest)
+library(lmtest)
+library(corrplot )
+```
+
+```{r}
+#Reading the dataset:
+data = read.csv(file.choose()) 
+head(data)
+ 
+attach(data)       #to avoid using $ symbol.
+```
+
+DATASET DESCRIPTION:
+The dataset selected for this assignment is the Heat Treating Data. It contains the results of the pitch carbon analysis test after undergoing heat treatment. The dataset contains 6 columns & 33 rows.The columns are:
+PITCH: Results of the pitch carbon analysis test 
+TEMP: Furnace temperature
+SOAKTIME: Duration of the carburizing cycle 
+SOAKPCT: Carbon concentration
+DIFFTIME: Duration of the diffuse cycle 
+DIFFPCT: Carbon concentration of the diffuse cycle
+Here the target variable is the Pitch column, the rest of the columns are the independent variables.
+
+```{r}
+#Correlation plot to visualise the correlation between variables:
+cor1=round(cor(data),4)
+corrplot(cor1,method = "number")
+```
+```{r}
+mlr_test = lm(Pitch ~ ., data)
+#Checking for multicollinearity
+imcdiag(mlr_test)
+```
+INTERPRETATION:
+It is observed that there is no multi-collinearity between the independent variables as all VIF values are less than 5.
+
+```{r}
+#Fitting a linear model to check for the most significant variables:
+mlr <- lm(Pitch~. ,data= data)
+summary(mlr)
+```
+```{r}
+#Q1. Fitting a linear regression model for the most significant variables:
+mlr_sig <- lm(Pitch ~ Soaktime + Difftime , data= data)
+summary(mlr_sig)
+```
+
+INTERPRETATION:
+The y-intercept is 0.0108951 i.e it cuts or intersects the Y-axis at (0.0108951,0). Hence, the regression line is given by: 
+y = 0.0024624x1 + 0.0087746x2.
+Here, y is the results of the pitch carbon analysis test. x1 is Soaktime and x2 is Difftime.
+Also, R-squared value is 0.966 which indicates that it is a very good fit.
+
+```{r}
+#Retaining only Soaktime and Difftime columns:
+newdata = data[,c(-1,-3,-5)]
+```
+
+```{r}
+#Boxplot to visualise the outliers:
+boxplot(newdata)
+
+#Value of the outlier:
+boxplot(newdata, plot=FALSE)$out
+```
+
+NTERPRETATION: 
+From the Boxplot we observe that the Soaktime column has 2 outliers.
+The outliers are 12.5 and 18.5. 
+We can deal with these outliers by either replacing the wrong value or entirely removing it.
+
+```{r}
+#Removing the rows containing outlier:
+nd2=as.data.frame(newdata)        #converting to a data frame
+cleandata=subset(nd2, Soaktime!=c(12.5,18.5))#removing the row which contains outliers
+cleandata                         #cleaned data
+
+boxplot(cleandata)                #Boxplot of cleaned data
+```
+
+INTERPRETATION:
+It is observed that there are no more outliers in the cleaned dataset.
+
+```{r}
+#Model after cleaning the data
+mlr_best = lm(Pitch ~ ., data = cleandata)
+summary(mlr_best)
+```
+INTERPRETATION:
+This model is the obtained after cleaning the data
+The y-intercept is 0.0111495 i.e it cuts or intersects the Y-axis at (0.0111495,0). Hence, the regression line is given by: 
+y = 0.0053949x1 + 0.0025357x2 + 0.0111495.
+Here, y is the results of the pitch carbon analysis test. x1 is Soaktime and x2 is Difftime.
+Also, R-squared value is 0.9332 which indicates that it is a very good fit.
+
+```{r}
+#Assumptions of the general linear model:
+
+#i. Normal Q-Q plot
+plot(mlr_best, which = 2, col="blue",lwd=3) #normality assumption of error terms
+
+#Shapiro-Wilk test for normality of error terms:
+e=residuals(mlr_best)
+shapiro.test(e)
+```
+INTERPRETATION:
+From the graph it is observed that the error terms are approximately normally distributed. We use Shapiro-Wilk test to test for normality mathematically.
+
+Test hypothesis:
+H0: Error terms are normal.
+H1: Error terms are not normal.
+
+p-value: 0.8809 i.e p-value > 0.05.
+We fail to reject the null hypothesis. 
+Conclusion: Error terms are normal.
+
+```{r}
+#ii. Residuals v/s fitted values:
+plot(mlr_best, which = 1, col = " red")       #linearity
+
+#iii.Scale-location plot
+plot(mlr_best, which = 3, col="blue")       #homoscedasticity
+
+```
+INTERPRETATION:
+From the residuals v/s fitted graph, it is observed that y is approximately linearly related to x as the points are almost equally distributed in a parallel strip( with respect to x-axis).
+
+```{r}
+#iv. Checking again for multicollinearity in new model: 
+imcdiag(mlr_best)
+```
+INTERPRETATION:
+Again, it is observed that there is no multi-collinearity between the independent variables as all VIF values are less than 5.
+
+```{r}
+#2. Test for autocorrelation:
+dwtest(mlr_best)
+```
+
+We test for autocorrelation using the Durbin-Watson test. 
+Testing for autocorrelation:
+Hypothesis:
+H0:No autocorrelation.
+H1: Autocorrelation exists.
+p-value: 0.1591 i.e p-value > 0.05
+We fail to reject the null hypothesis.
+Conclusion: There is no autocorrelation.
+
+################################################################################
+CONCLUSION:
+It is observed that after removing the outliers, the model has a better fit. Also the assumptions of the multiple linear regression model are also met in a better way.  

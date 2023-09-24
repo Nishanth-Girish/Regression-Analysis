@@ -1,0 +1,112 @@
+---
+title: "Linear Regression Coursera Project"
+author: "Nishanth Girish"
+date: "2023-05-30"
+output: word_document
+---
+
+
+```{r}
+#Importing necessary libraries:
+library(ggplot2)
+library(sjlabelled)
+library(sjPlot)
+library(sjmisc)
+library(dplyr)
+
+theme_set(theme_sjplot())
+```
+```{r}
+#Reading the data:
+data <- read.csv("cars.csv", header = TRUE, stringsAsFactors = FALSE)
+head(data)
+str(data)
+```
+
+```{r}
+#Cleaning the dataset:
+
+#column containing characters
+cols <- names(data)[vapply(data, is.character, logical(1))]
+
+#Trimming whitespaces:
+data[,cols] <- lapply(data[,cols], trimws)
+
+data[data == "N/A"] = NA
+
+sapply(data, function(x) mean(is.na(x)))
+
+data$Market.Category <- NULL
+
+#Rows with no missing values:
+data <-  data[complete.cases(data),]
+
+
+
+
+```
+
+
+```{r}
+#Train-test split:
+
+data_num <- data %>% select_if(is.numeric)
+
+hist(data_num$MSRP, breaks = 100)
+
+
+data_num <- data_num %>% 
+  filter(MSRP > 15000) %>% 
+  filter(MSRP < 50000)
+  
+
+
+set.seed(123)
+
+size <- floor(0.8 * nrow(data_num))
+
+train_ind <- sample(seq_len(nrow(data_num)), size = size)
+train <- data_num[train_ind, ]
+test <- data_num[-train_ind, ]
+```
+
+
+```{r}
+#Fitting the model:
+model <- lm(MSRP ~ ., data = train)
+summary(model)
+```
+
+```{r}
+#Plotting the coefficients
+plot_model(model , show.values = T, value.offset = 0.2)
+```
+
+```{r}
+#Residual plots
+plot(model)
+```
+```{r}
+#Prediction:
+
+test$pred <- predict(model, newdata = test)
+
+#Plot
+ggplot(test, aes(x = MSRP, y = pred)) +
+  geom_point() +
+  geom_smooth(method = "lm", color = "blue") +
+  theme_bw()
+```
+
+
+```{r}
+#Error metrics:
+error <- test$pred - test$MSRP
+
+rmse <- sqrt(mean(error^2))
+rmse
+
+mae <- mean(abs(error))
+mae
+```
+

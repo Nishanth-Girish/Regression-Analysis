@@ -1,0 +1,115 @@
+---
+title: "2248111_Lab4"
+author: "Nishanth Girish"
+date: '2022-12-09'
+output: word_document
+---
+
+```{r}
+#Importing necessary libraries:
+library(GGally)
+library(ggplot2)
+library(psych)
+library(mctest)
+library(lmtest)
+library(corrplot )
+```
+
+Dataset description: 
+The dataset selected for this assignment is the ICRISAT District Level Data of Kodagu, Karnataka. It shows the production of rice over 51 years (1966-2017) in the Kodagu. The dataset contains 3 major columns: RICE AREA(1000 ha), RICE PRODUCTION (1000 tons), and RICE YIELD (Kg/ha). It has other columns such as Year, District Code, District Name, State etc. 
+Here, the dependent variable is the Rice Yield(kg/ha) and the independent variables are Rice Area(1000 hectares) and Rice Production(1000 metric tons). This relation is obvious as the yield of rice per year depends upon the agricultural area and the rice production per year.
+
+```{r}
+#Reading the dataset:
+data = read.csv(file.choose()) 
+head(data)
+ 
+attach(data)       #to avoid using $ symbol.
+```
+
+
+```{r}
+newdata= data[,c(-1,-2,-3,-4,-5)]  #drop the 1st to 5th columns as they are                                           unnecessary.
+head(newdata)
+attach(newdata)
+```
+
+
+```{r}
+#Renaming column names for ease of understanding.
+colnames(newdata) = c("X1","X2","Y")   
+head(newdata)
+attach(newdata)
+
+#Here, Y is the Rice Yield column, X1 is the Rice Area column and X2 is the Rice Production.
+```
+
+
+```{r}
+#Correlation matrix:
+cor(newdata)
+ggpairs(newdata)
+```
+
+INTERPRETATION:
+We observe that the independent variable Y is negatively correlated to the independent variable X1; and positively correlated to X2.
+Coefficient of correlation between X1 & Y:-0.5701
+Coefficient of correlation between X2 & Y: 0.5227
+Coefficient of correlation between X1 & X2: 0.3933
+
+```{r}
+#2.Multiple Linear Regression:
+mlr=lm(Y ~ ., newdata)
+
+summary(mlr)
+```
+
+INTERPRETATION:
+The regression coeeficients are: -54.945 & 23.4392.The y-intercept is 2366.5794 i.e it cuts or intersects the Y-axis at (2366.5794,0).  Hence, the regression line is given by: 
+y = -54.945*(x1) + 23.4392 *(x2) + 2366.5794.
+Here, y is Rice Yield, x1 is Rice Area, x2 is Rice Production respectively.
+Also, R-squared value is 0.9853.
+
+
+```{r}
+#1. Checking the assumptions of GLM:
+
+#i.Residuals v/s fitted values    
+plot(mlr, which = 1, col = " red")       #linearity
+
+#ii.Normal Q-Q plot
+plot(mlr, which = 2, col="blue",lwd=3)    #normality assumption of error terms
+
+#iii.Scale-location plot
+plot(mlr, which = 3, col="blue")       #homoscedasticity
+
+#iv. Checking for multicollinearity
+imcdiag(mlr)
+
+#v. Sum of error terms is zero:
+e=residuals(mlr)
+sum(e)
+
+#vi. Error terms are uncorrelated:
+sum(e*X1)
+sum(e*X2)
+
+```
+INTERPRETATION:
+i. Residuals v/s fitted values plot shows that there is a linear relationship between the dependent and independent variables (approx.).
+ii. The Normal Q-Q plot shows that the error terms are normally distributed (approx.)
+iii.The scale-location plot shows that the variance of error terms is constant (approx.).
+iv. The independent variables are not multi-collinear.
+v. The sum of error terms is 2.087219e-14 which is approximatley equal to 0. 
+vi. Error terms are uncorrelated.
+
+```{r}
+#3. Residual plots
+plot(mlr)
+```
+
+INTERPRETATION:
+i. Residuals v/s fitted values plot shows that there is a linear relationship between the dependent and independent variables (approx.)
+ii. The Normal Q-Q plot shows that the error terms are normally distributed (approx.)
+iii. The scale-location plot shows that the variance of error terms is constant.
+iv. The residuals vs leverage plot is used to identify the highly influential values in the model. Here, the influential points are 22nd, 48th and 50th observations. 

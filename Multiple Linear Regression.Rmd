@@ -1,0 +1,144 @@
+---
+title: "MLR"
+author: "Nishanth Girish"
+date: '2022-11-22'
+output: word_document
+---
+
+```{r}
+# Loading necessary libraries:
+
+library(readxl)
+library(GGally)
+library(ggplot2)
+library(psych)
+```
+
+```{r}
+# Loading the data:
+
+data <- read_excel("C:/Users/nisha/Downloads/50_Startups.xlsx")
+head(data)
+```
+
+```{r}
+
+newdata= data[,-4]
+head(newdata)
+attach(newdata)
+```
+
+```{r}
+#Correlation among the variables:
+round(cor(newdata),2)
+```
+
+```{r}
+#Changing the column names:
+colnames(newdata) = c("X1","X2","X3","Y")
+head(newdata)
+attach(newdata)
+```
+
+```{r}
+#
+
+cor.test(Y,X2)
+```
+
+```{r}
+# Fitting a multiple linear regression model:
+
+model = lm(Y ~. ,data = newdata)
+model
+
+# Summary of the model:
+summary(model)
+```
+
+```{r}
+# Fitting a simple linear regression model:
+
+model1 = lm(Y~X1, data= newdata)
+model1
+summary(model1)
+```
+
+```{r}
+# ANOVA 
+anova(model)
+```
+```{r}
+anova(model1)
+```
+```{r}
+pairs(newdata)
+```
+
+
+```{r}
+ggpairs(newdata)
+ggpairs(newdata)+theme_bw()
+pairs.panels(newdata)
+```
+
+```{r}
+
+# RESIDUAL ANALYSIS:
+
+# Residual plots:
+#1.Residual v/s Fitted
+plot(model, which = 1, col="red")    #linearity
+
+#2.Normal Q-Q plot
+plot(model, which = 2, col="blue",lwd=3)    #normality assumption of error terms
+
+#3.Scale-location plot
+plot(model, which = 3, col="green")       #homoscedasticity
+
+#4.Cook's distance
+plot(model, which = 4)     #identify the highly influenced data; significant obsvs.
+
+#5.Residuals v/s Leverage
+plot(model, which = 5) 
+
+#6. 
+plot(model, which = 6) 
+```
+
+```{r}
+#Boxplot
+cor(Y,X1)
+m1 = lm(Y~X1)
+m1
+
+plot(X1,Y)
+
+summary(m1)
+```
+
+```{r}
+Y= c(Y,200000)
+X1=c(X1,0)
+
+m2=lm(Y~X1)
+m2
+summary(m2)     #outliers affect the model
+plot(X1,Y)
+
+```
+
+```{r}
+#Boxplot
+
+dt= data.frame(Y,X1)
+boxplot(dt)
+```
+```{r}
+#GGplot
+data=data.frame(Y,X1)
+attach(data)
+m1=lm(Y ~ X1)
+fitted(m1)
+```
+

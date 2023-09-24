@@ -1,0 +1,123 @@
+---
+title: "2248111_Lab3"
+author: "Nishanth Girish"
+date: '2022-12-02'
+output: word_document
+---
+
+```{r}
+#Importing necessary libraries:
+library(GGally)
+library(ggplot2)
+library(psych)
+library(mctest)
+library(lmtest)
+library(corrplot )
+```
+
+Dataset description: 
+The dataset selected for this assignment is the Marketing dataset. It shows the total sales due to the marketing campaigns conducted on several platforms i.e YouTube, Facebook, and Newspaper. The dataset contains 71 rows and 4 columns.
+
+#1.We need to fit a multiple linear regression model to this dataset as we are predicting the value of sales by taking the sales variable as the dependent variable and there are multiple independent variables that can be used to predict the dependent variable. Hence, we fit a multiple linear regression model.
+
+```{r}
+#Reading the dataset:
+data = read.csv(file.choose()) 
+head(data)
+ 
+attach(data)       #to avoid using $ symbol.
+```
+
+
+
+```{r}
+#1.Multiple Linear Regression:
+mlr= lm(sales ~ . , data)
+mlr
+summary(mlr)
+```
+Interpretation:The regression coeeficients are 0.045235, 0.188398 and 0.004279. The y-intercept is 3.505871 i.e it cuts or intersects the Y-axis at (3.505871 ,0).  Hence, the regression line is given by: 
+y = 0.045235*(x1) +  0.188398*(x2) + 0.004279*(x3) + 3.505871.
+Here, y is sales, x1 is youtube, x2 is facebook, x3 is newspaper respectively.
+
+
+```{r}
+#2.Correlation matrix:
+cor(data)
+cor1=round(cor(data),4)
+corrplot(cor1,method = "number")
+```
+
+Interpretation:
+Coefficient of correlation between sales and youtube: 0.78.
+Coefficient of correlation between sales and facebook: 0.60.
+Coefficient of correlation between sales and newspaper: 0.26.
+Also, we observe that the independent variables youtube,facebook and newspaper are only weakly positively correlated between each other.
+
+```{r}
+#3.Matrix scatter diagram:
+pairs(data)
+ggpairs(data)
+```
+
+We now check for multi-collinearity between the independent variables:
+```{r}
+#4.Individual Multicollinearity test:
+imcdiag(mlr)
+```
+Interpretation:
+The independent variables are not multi-collinear. Hence, the regressors are independent of each other.
+```{r}
+#residual plots:
+#1.Residual v/s Fitted
+plot(mlr, which = 6, col="red")    #linearity
+
+#2.Normal Q-Q plot
+plot(mlr, which = 2, col="blue",lwd=3)    #normality assumption of error terms
+
+#3.Scale-location plot
+plot(model, which = 3, col="green")       #homoscedasticity
+
+#4.Cook's distance
+plot(model, which = 4)     #identify the highly influenced data; significant obsvs.
+
+#5.Residuals v/s Leverage
+plot(model, which = 5) 
+
+#6. 
+plot(model, which = 6) 
+```
+```{r}
+plot(mlr)
+```
+
+```{r}
+#5. Multiple linear regression model 
+#Independent variable youtube is highly correlated with the dependent variable sales.
+mlr1=lm(sales ~ youtube , data)
+summary(mlr1)
+```
+Interpretation:
+The regression coefficients is 0.0482.The y-intercept is 8.341945 i.e it cuts or intersects the Y-axis at (8.341945 ,0).  Hence, the regression line is given by: 
+y = 0.0482*(x1) + 8.341945.
+Here, y is sales, x1 is youtube respectively.
+Also, R-squared value is 0.6116.
+
+```{r}
+#6.95% confidence intervals for the individual parameters:
+confint(mlr,level=0.95)
+```
+Interpretation:
+95% confidence interval for b0: [2.71685879, 4.29488320]
+                            b1: [0.04224157, 0.04822932]
+                            b2: [0.17059729, 0.20619836]
+                            b3: [-0.00855599, 0.01711497]
+```{r}
+#6.99% confidence intervals for the individual parameters:
+confint(mlr,level=0.99)
+```
+Interpretation:
+99% confidence interval for b0: [2.46455415, 4.54718784]
+                            b1: [0.04128420, 0.04918668]
+                            b2: [0.16490516, 0.21189049]
+                            b3: [-0.01266043, 0.02121941]

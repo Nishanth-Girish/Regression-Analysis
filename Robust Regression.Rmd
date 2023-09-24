@@ -1,0 +1,43 @@
+---
+title: "Robust Regression"
+author: "Nishanth Girish"
+date: '2023-01-23'
+output: word_document
+---
+```{r}
+library(MASS)
+library(robustbase)
+library(olsrr)
+```
+
+
+```{r}
+data<-CrohnD
+data
+attach(data)
+```
+
+
+```{r}
+mlr <- lm(nrAdvE ~ BMI + height , data = data)
+summary(mlr)
+
+
+summary(mlr)$sigma    #Residual standard error
+```
+
+
+```{r}
+robreg <- lmrob(nrAdvE ~ BMI + height , data = data)
+summary(robreg)
+
+summary(robreg)$sigma    #Residual standard error
+``` 
+
+
+```{r}
+#oultier analysis
+ols_plot_resid_lev(mlr)
+```
+
+

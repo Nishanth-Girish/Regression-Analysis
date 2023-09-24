@@ -1,0 +1,81 @@
+---
+title: "2248111_Lab2"
+author: "Nishanth Girish"
+date: '2022-11-25'
+output: word_document
+---
+
+```{r}
+#Importing necessary libraries:
+library(readxl)
+library(GGally)
+library(ggplot2)
+library(psych)
+```
+
+```{r}
+#Importing the data from Excel
+data <- read_excel("C:/Users/nisha/Downloads/Dataset_MLR.xlsx")
+head(data)           #display first few rows of the data
+attach(data)         #to avoid using $ sign
+```
+Data Description:                                                            
+The dataset shows the scores in the End Semester Examination (ESE) and the scores in two preliminary examinations CIA1 and CIA2 for 22 students in a Statistics course. It contains 4 columns: Student Reg No., ESE ,CIA1, CIA2.
+
+```{r}
+newdata= data[,c(-1,-5,-6)]  #drop the 1st,5th and 6th columns as they are                                      unnecessary.
+head(newdata)
+attach(newdata)
+```
+
+```{r}
+#1.Matrix scatter diagram:
+pairs(newdata)
+ggpairs(newdata)
+```
+Interpretation: From the matrix scatter plot diagram, we can infer that the variables/columns are highly positively correlated to each other. 
+
+```{r}
+#Co-efficient of correlation:
+cor(ESE,CIA1)      #correlation between ESE and CIA1 variables.
+
+cor(ESE,CIA2)      #correlation between ESE and CIA2 variables.
+
+cor(CIA1,CIA2)     #correlation between CIA1 and CIA variables.
+```
+Interpretation: The coefficient correlation between ESE and CIA1 variables is: 0.8956842.
+The coefficient correlation between ESE and CIA2 variables is: 0.9273811.
+The coefficient correlation between ESE and CIA1 variables is: 0.8841434.
+We observe that the variables aare highly positively correlated.
+
+```{r}
+#2.Estimate the parameters of a multiple linear regression model and fit a regression line.
+
+#Here, the dependent variable is the ESE column and the independent variables are 
+#CIA1 and CIA2 columns. ESE is a dependent variable as the end semester marks #depends upon the internal marks obtained by a student.
+
+model = lm(ESE ~ . ,data = newdata)   #Multiple linear regression model
+
+
+summary(model) 
+```
+Interpretation:The regression coeeficients are 0.4883 and 0.672. The y-intercept is -14.5005  i.e it cuts or intersects the Y-axis at (-14.5005 ,0).  Hence, the regression line is given by: 
+y = 0.4883*(x1)+ 0.6720*(x2) + -14.5005.
+Here, y is ESE, x1 is CIA1, x2 is CIA2 respectively.
+Also, R-squared value is 0.8744.
+
+```{r}
+#Residual plots:
+plot(model)
+```
+
+
+```{r}
+#3.Testing the significance of the regression coefficients
+anova(model)
+```
+Interpretation: For CIA1 variable, p-value is 4.721e-10. Hence, we can conclude that the regression coefficient for CIA1 variable is statistically significant.
+Similarly, for CIA2 variable, p-value is 0.001361. Hence, we can conclude that the regression coefficient for CIA2 variable is statistically significant.
+
+
+

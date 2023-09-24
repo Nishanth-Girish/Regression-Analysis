@@ -1,0 +1,158 @@
+---
+title: "Untitled"
+author: "Nishanth Girish"
+date: '2023-02-03'
+output: word_document
+---
+
+```{r}
+#Importing the necessary libraries:
+library(MASS)
+library(robustbase)
+library(olsrr)
+library(lmtest)
+library(mctest)
+```
+
+
+```{r}
+#Dataset Description:
+#The Happiness Index dataset contains the Happiness Index score of 146 countries. The dependent variable is the Happiness score variable. The independent variables are as follows: GDP Per Capita, Social Support, Healthy life expectancy, Freedom to make life choices, Generosity, Perception of corruption.
+
+#Reading the dataset:
+data = read.csv(file.choose()) 
+head(data)
+ 
+attach(data)       #to avoid using $ symbol.
+```
+
+
+```{r}
+#Renaming and removing unecessary columns:
+data2 <- data[,c(-1,-2,-4)]
+
+#Renaming the columns:
+colnames(data2) <- c('y','x1','x2','x3','x4','x5','x6')
+head(data2)
+attach(data2)
+```
+
+
+```{r}
+#Fitting a multiple linear regression model
+mlr_test = lm(y ~ . , data=data2)
+summary(mlr_test)
+```
+
+
+```{r}
+#Fitting only significant variables:
+mlr =lm(y~ x1+x2+x3+x4, data= data2)
+
+summary(mlr)    #all statistically significant
+```
+
+INTERPRETATION:
+The intercept is 1.7408. The regression coefficients are: 0.5295, 1.3759, 1.3676 & 1.9679.
+The R-squared value is 0.762. The residual standard error is 0.5377.
+
+```{r}
+#Boxplot:
+boxplot(data2)
+```
+
+INTERPRETATION:
+From the Boxplot, we can observe outliers in almost every column.
+
+```{r}
+#Oultier analysis:
+ols_plot_resid_lev(mlr)
+```
+
+INTERPRETATION:
+From the plot, it is evident that the data contains a few outliers(127th,134th, & 144th data points) as well as several leverage points. A couple of data points(142nd & 145th) are both outliers as well as leverage points.
+
+```{r}
+#Checking for heteroscedasticity:
+bptest(mlr)
+```
+
+INTERPRETATION:
+The p-value for the BP test < 0.05, which indicates that the data is heteroscedastic.
+
+Since the data is heteroscedastic as well as contains some outliers, we go with robust regression model.
+```{r}
+#Fitting a robust regression model:
+robust <- lmrob(y~x1+x2+x3+x4, data = data2)
+summary(robust)
+```
+
+INTERPRETATION:
+The intercept is 1.8088. The regression coefficients are: 0.6582, 1.2985, 1.0822 & 2.0011.
+The R-squared value is 0.7605. The residual standard error is 0.5109.
+Since the residual standard error of the robust regression model is less than residual standard error of the linear model, we conclude that the robust model is a better fit. Also. the R-squared value of both the models are approximately equal.
+
+
+
+```{r}
+#Dataset Description:
+#This dataset from (Romanelli et al., 2001) contains physicochemical characteristics of 44 aliphatic alcohols. The dependent variable is the logSolubility variable, which indicates the natural logarithm of the solubility of the alcohol in water. The independent variables are as follows: SAG- solvent accessible surface-bounded molecular volume, V - volume, P - polarizability, RM - molar refractivity and logPC - log of octanol-water partitions coefficient.
+
+#Reading the second dataset:
+data3 <- alcohol
+head(data3)
+attach(data3)
+```
+```{r}
+#Fitting a multiple linear regression model:
+mlr2 <- lm(logSolubility ~ ., data = data3)
+summary(mlr2)
+```
+
+INTERPRETATION:
+The intercept is 35.867738. The regression coefficients are: -0.004742, -0.017725, -2.396005 & 32.988866, -0.672607 & -4.045278.
+The R-squared value is 0.9832. The residual standard error is 0.4586.
+
+```{r}
+#Boxplot:
+boxplot(alcohol)
+```
+
+INTERPRETATION:
+From the Boxplot, we can observe outliers in almost every column.
+
+```{r}
+#Checking for heteroscedasticity:
+bptest(mlr2)
+```
+
+INTERPRETATION:
+The p-value for the BP test < 0.05, which indicates that the data is heteroscedastic.
+
+```{r}
+#Oultier analysis:
+ols_plot_resid_lev(mlr2)
+```
+
+INTERPRETATION:
+From the plot, it is evident that the data contains a few outliers(13th, 11th, & 33rd data points) as well as several leverage points(43rd and 41st data points).
+
+Since the data is heteroscedastic as well as contains some outliers, we go with robust regression model.
+
+```{r}
+#Fitting a robust regression model:
+robust2 <- lmrob(logSolubility ~ ., data= data3)
+summary(robust2)
+```
+
+INTERPRETATION:
+The intercept is 0.22545. The regression coefficients are: -0.03530, 0.03669, -3.86452, 6.23303, -4.09473 & 0.47901.
+The R-squared value is 0.9959. The residual standard error is 0.2066.
+Since the residual standard error of the robust regression model is less than residual standard error of the linear model and the R-squared value of the robust regression is slighlty higher than that of the linear model , we conclude that the robust model is a better fit.
+
+
+CONCLUSION:
+In conclusion, we can say that the robust regression model performed better than the multiple linear regression model in both cases. Hence, we should use a robust model to fit out data if it is heteroscedastic or contains outliers.
+
+
+

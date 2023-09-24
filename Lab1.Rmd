@@ -1,0 +1,61 @@
+---
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r}
+#Reading the CSV file:
+data <- read.csv(file.choose())   #choose file
+attach(data)                      #attaching to avoid using $ sign
+
+head(data)                        #displaying the first few rows of the data
+
+```
+
+
+
+```{r}
+#1.Scatter plot
+plot(Weight,Systolic.BP , main= "Scatter plot", xlab= "Weight in lbs", ylab= "Systolic BP",pch= 19 )
+```
+Interpretation: We obtain the scatter plot as shown above. Here, the Systolic BP is the dependent variable as it depends on the weight. Hence, we take Systolic BP on the Y-axis and the Weight variable(independent variable) on the X-axis. We observe from the plot that as weight increases, the BP increases i.e there is an increasing linear relation.
+
+
+```{r}
+#2.Regression line connecting the variables systolic pressure and weight:
+
+slr1 = lm(Systolic.BP~Weight)   #fitting a simple linear regression model
+slr1
+
+summary(slr1)                   #summary             
+```
+Interpretation: We get the coefficient of regression as 0.4194 i.e there is positive correlation. The y-intercept is 69.1044 i.e it cuts or intersects the Y-axis at (69.1044,0). Hence, the regression line is given by: 
+y = 0.4194*(x) + 69.1044
+Here, y is the value of systolic BP and x is the value of weight.
+
+```{r}
+#Plotting the fitted linear regression model:
+plot(slr1)
+```
+
+
+```{r}
+#Plotting the fitted regression line:
+plot(Weight,Systolic.BP , main= "Scatter plot", xlab= "Weight in lbs", ylab= "Systolic BP",pch= 19 )
+
+abline(slr1)           #fitting the line
+```
+We have plotted the fitted regression line onto the scatter plot. The regression line is given by the equation: y = 0.4194x + 69.1044
+
+```{r}
+#3.Obtain the fitted values. Does the sum of fitted values is equal to the sum of observed values ?
+
+fv <- fitted.values(slr1)   #Fitting the values
+sum(fv)                    #Sum of fitted values
+
+sum(Systolic.BP)           #Sum of observed values
+```
+
+Interpretation: The sum of fitted values as 3786. Also, the sum of observed is 3786. Hence, the sum of fitted values is equal to the sum of the observed values.
+

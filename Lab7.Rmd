@@ -1,0 +1,157 @@
+---
+title: "Untitled"
+author: "Nishanth Girish"
+date: '2023-01-13'
+output: word_document
+---
+
+```{r}
+#Importing necessary libraries:
+library(GGally)
+library(ggplot2)
+library(psych)
+library(mctest)
+library(lmtest)
+library(corrplot )
+library(olsrr)
+```
+
+
+```{r}
+#Taking an inbuilt dataset from the olsrr library:
+data1<- auto
+attach(data1)
+head(data1)
+```
+DATASET DESCRIPTION:
+The auto dataset contains prices of automobiles along with mileage, dimensions, gears, reps/sec, turn radius and other information.
+Here the price column is the dependent variable and the rest are independent variables.
+
+```{r}
+#removing column containing missing values:
+data_clean <- data1[,c(-3,-11)]
+```
+
+
+```{r}
+#Fitting a multiple linear regression model:
+mlr1 = lm(price ~  . , data= data_clean)
+summary(mlr1)
+```
+
+
+
+```{r}
+#Fitting a stepwise forward regression value based on AIC values:
+ols_step_forward_aic(mlr1, details = TRUE)
+```
+INTERPRETATION:
+Initially at Step 0, AIC value = 1395.426. No variables selected(only intercept term taken into the model)
+At Step 1, AIC = 1372.071. Weight variable selected.
+At Step 2, AIC = 1364.337. Turn variable selected.
+At Step3, AIC = 1363.22. Headroom variable selected.
+No more variables are selected. Thus, the variables selected in forward selection are weight, turn, and headroom.
+R-Squared  value of the model = 0.403
+
+
+```{r}
+#ols_step_backward_p(mlr1,pent=0.05, details = F)
+ols_step_backward_aic(mlr1,pent=0.05,details = TRUE)
+```
+
+INTERPRETATION:
+Initially at Step 0 the whole model is considered. AIC = 1363.133 
+At Step 1, trunk variable is eliminated. AIC = 1362.313 
+No more variables are eliminated.
+R-squared value of the model is 0.471. Hence it is a better model than the stepwise forward regression model which has R-squared = 0.403
+
+```{r}
+#Plot of the stepwise forward regression model:
+plot(ols_step_forward_aic(mlr1))
+```
+
+INTERPTRETATION:
+From the graph we observe that the AIC values keep on decreasing as the number of steps increases and variables added at each step is shown on the graph.
+
+```{r}
+plot(ols_step_backward_aic(mlr1))
+```
+
+INTERPTRETATION:
+From the graph we observe that the AIC values keep on decreasing as the number of steps increases and variables eliminated at each step is shown on the graph.
+
+```{r}
+#Fitting a linear model on the variables left in the model after  backward elimantion 
+mlr1_bwd <- lm(price ~ weight + turn  + headroom + mpg +length +displacement + gear_ratio, data = data_clean)
+summary(mlr1_bwd)
+```
+INTERPRERTATION:
+The regression coeeficients are: 4.782, -314.029, -583.881, -108.609, -67.117 2284.028.The y-intercept is 11580.164.  
+Also, R-squared value is  0.4709 which indicates that it is a moderate model.
+
+
+```{r}
+#Taking 2nd dataset:
+data2<- cement
+attach(data2)
+data2
+```
+
+```{r}
+#Fitting a multiple linear regression model:
+mlr2 = lm(y ~ x1+x2+x3+x4 , data= data2)  
+summary(mlr2)
+```
+
+```{r}
+#Stepwise forward regression:
+ols_step_forward_aic(mlr2,pent = 0.05 , details = TRUE)
+```
+
+INTERPRETATION:
+Initially at Step 0, AIC value = 110.3368. No variables selected(only intercept term taken into the model)
+At Step 1, AIC = AIC = 97.74404. x4 variable selected.
+At Step 2, AIC = 67.63411.  x1 variable selected.
+At Step3, AIC = 63.866. x2 variable selected.
+No more variables are selected. Thus, the variables selected in forward selection are x4, x1, and x2.
+R-Squared  value of the model = 0.982 .
+
+```{r}
+#ols_step_backward_p(mlr2, pent=0.05, details= F)
+ols_step_backward_aic(mlr2,pent=0.05, details = T)
+```
+
+INTERPRETATION:
+Initially at Step 0 the whole model is considered. AIC =  65.837
+At Step 1, x3 variable is eliminated. AIC = 63.866 
+No more variables are eliminated.
+R-squared value of the model is  0.982.
+```{r}
+##Fitting a linear model on the variables left in the model after  backward elimantion:
+mlr2_fwd = lm(y ~ x1+x2 + x4 , data= data2)
+summary(mlr2_fwd)
+
+```
+
+INTERPRERTATION:
+The regression coeeficients are: 1.4519 , 0.4161 , -0.2365.The y-intercept is 71.6483.  
+Also, R-squared value is  0.9823 which indicates that it is a very good model.
+
+```{r}
+#Plot of the stepwise forward regression model:
+plot(ols_step_forward_aic(mlr2))
+```
+
+INTERPTRETATION:
+From the graph we observe that the AIC values keep on decreasing as the number of steps increases and variables selected at each step is shown on the graph.
+
+```{r}
+#Plot of the stepwise forward regression model:
+plot(ols_step_backward_aic(mlr2))
+```
+
+INTERPTRETATION:
+From the graph we observe that the AIC values keep on decreasing as the number of steps increases and variables eliminated at each step is shown on the graph.
+
+
+

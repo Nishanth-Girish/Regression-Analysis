@@ -1,0 +1,187 @@
+---
+title: "2248111_LAB5"
+author: "Nishanth Girish"
+date: '2022-12-16'
+output: word_document
+---
+
+```{r}
+#Importing necessary libraries:
+library(GGally)
+library(ggplot2)
+library(psych)
+library(mctest)
+library(lmtest)
+library(corrplot )
+```
+DATASET DESCRIPTION:
+The dataset selected for this assignment is the Property Valuation Data. It contains the sales prices of houses. The dataset contains 10 columns & 24 rows.The columns are:
+y : Sale price of the house/1000
+x1 : Taxes/1000
+x2 : Number of baths
+x3 : Lot size (sq ft × 1000)
+x4 : Living space (sq ft × 1000)
+x5 : Number of garage stalls
+x6 : Number of rooms
+x7 : Number of bedrooms
+x8 : Age of the home (years)
+x9 : Number of fire places
+Here y is the dependent variable and x's are the independent variables.
+
+```{r}
+#Reading the dataset:
+data = read.csv(file.choose()) 
+head(data)
+ 
+attach(data)       #to avoid using $ symbol.
+```
+
+
+```{r}
+mlr_test = lm(y ~ ., data)
+#Checking for multicollinearity
+imcdiag(mlr_test)
+
+#Durbin-Watson test for autocorrelation:
+dwtest(mlr_test)
+```
+INTERPRETATION:
+The VIF values for x1, x6 & x7 are greater than 5 i.e they are multi-collinear. Hence, we need to remove these columns from the model. However, we observe from the dataset description that x6  column is the number of rooms and x7 is the number of bedrooms. x6 is therefore a highly relevant column, hence cannot be removed. Also, x7 is redundant as the no. of bedrooms is included in the x6 column(no. of rooms).
+We shall now remove only x1 and x7 columns and try to fit the model again.
+
+Testing for autocorrelation:
+Hypothesis:
+H0:No autocorrelation.
+H1: Autocorrelation exists.
+p-value: 0.598 i.e p-value > 0.05
+We fail to reject the null hypothesis.
+Conclusion: There is no autocorrelation.
+
+```{r}
+#Drop the 2nd & 8th columns to deal with multi-collinear variables:
+newdata= data[,c(-2,-8)]  
+head(newdata)
+attach(newdata)
+```
+
+```{r}
+#1. Fitting a multiple linear regression model:
+mlr=lm(y ~ ., newdata)
+
+summary(mlr)
+```
+INTERPRETATION:
+The y-intercept is 13.92604 i.e it cuts or intersects the Y-axis at (13.92604,0). Hence, the regression line is given by: 
+y = 13.35757x2 + 0.35579x3 + 2.48318x4 + 0.78820x5 + 0.22476x6 -0.10852x8 +  2.58765x9 + 13.92604.
+Here, y is sale price of the house.
+Also, R-squared value is 0.863 which indicates that it is a good fit.
+
+```{r}
+#Checking again for multicollinearity in new model: 
+imcdiag(mlr)
+
+#Durbin-Watson test for autocorrelation in new model:
+dwtest(mlr)
+```
+
+INTERPRETATION:
+Now, we observe that there is no multi-collinearity between independent variables as all VIF variables are less than 5.
+Also, after conducting Durbin-Watson test again, we conclude there is no autocorrelation in the data as p-value = 0.6061 > 0.05
+
+```{r}
+#2. Normal Q-Q plot
+plot(mlr, which = 2, col="blue",lwd=3)    #normality assumption of error terms
+
+
+#Shapiro-Wilk test for normality of error terms:
+e=residuals(mlr)
+shapiro.test(e)
+```
+
+INTERPRETATION:
+From the graph it is observed that the error terms are approximately normally distributed. We use Shapiro-Wilk test to test for normality mathematically.
+
+Test hypothesis:
+H0: Error terms are normal.
+H1: Error terms are not normal.
+
+p-value: 0.2408 i.e p-value > 0.05.
+We fail to reject the null hypothesis. 
+Conclusion: Error terms are normal.
+
+```{r}
+#3. Residuals v/s fitted values:
+plot(mlr, which = 1, col = " red")       #linearity
+
+#Residuals v/s leverage:
+plot(mlr, which= 5 , col="red")
+```
+INTERPRETATION:
+From the residuals v/s fitted graph, it is observed that y is approximately linearly related to x as the points are almost equally distributed in a parallel strip( with respect to x-axis).
+From the residuals v/s leverage graph, we observe that the 17th observation in the data is a leverage point.
+
+```{r}
+#Bocplot to visualise the outliers:
+boxplot(newdata)
+
+#Value of the outlier:
+boxplot(newdata, plot=FALSE)$out
+```
+
+INTERPRETATION: 
+From the Boxplot we observe that column x5(no. of garage stalls) has an outlier.
+The outlier has a value of 15. Observing the dataset, we can conclude that the outlier is clearly a typograhical error or data entry error as the column contains only: 1, 1.5, 2.
+We can deal with this outlier by either replacing the wrong value or entirely removing it.
+
+```{r}
+#Removing the row containing outlier:
+nd2=as.data.frame(newdata)        #converting to a data frame
+cleandata=subset(nd2, x5 != 15)   #removing the row which contains 15(outlier)
+cleandata                         #cleaned data
+
+boxplot(cleandata)                #Boxplot of cleaned data
+```
+
+INTERPRETATION:
+It is observed that there are no more outliers in the cleaned dataset.
+
+
+```{r}
+#fitting the model for cleaned data:
+mlr2 = lm(y ~., cleandata)
+summary(mlr2)
+```
+INTERPRETATION:
+R-squared value is 0.8754 which is a better fit than the previous fitted model. 
+
+```{r}
+#Normal Q-Q plot after cleaning data:
+
+plot(mlr2, which = 2, col="blue",lwd=3)    #normality assumption of error terms
+
+#Residuals v/s fitted values after cleaning the data:
+
+plot(mlr2, which = 1, col = " red")       #linearity
+
+#Residuals v/s leverage
+
+plot(mlr2 , which = 5 , col="red")
+
+```
+INTERPRETATION:
+Comparing with previous graphs, we obtain a closer approximation for normality and linearity assumptions after fitting for cleaned data.
+Also, there are no leverage points that are affecting the data.
+
+```{r}
+#Checking again for multicollinearity in new model: 
+imcdiag(mlr2)
+
+#Durbin-Watson test for autocorrelation in new model:
+dwtest(mlr2)
+```
+INTRPRETATION:
+Again, there is no multi-collinearity. ALso, there is no autocorrelation in the cleaned data as p-value = 0.2729 (>0.05).
+
+################################################################################
+CONCLUSION:
+It is observed that after removing the outliers, the model has a better fit. Also the assumptions of the multiple linear regression model are also met in a better way.  
